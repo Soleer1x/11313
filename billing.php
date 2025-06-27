@@ -197,14 +197,46 @@ function navActive($file) {
               </a>
             </li>
             <li class="nav-item d-flex align-items-center">
-              <a href="../pages/sign-in.html" class="nav-link text-body font-weight-bold px-0">
-                <i class="material-symbols-rounded">account_circle</i>
-              </a>
-            </li>
+            <a href="profile.php" style="display:inline-block;">
+              <img id="navbar-profile-img" src="../assets/img/usuario.png" alt="Perfil" style="width:36px;height:36px;object-fit:cover;border-radius:50%;border:2px solid #43a047;cursor:pointer;">
+            </a>
+          </li>
           </ul>
         </div>
       </div>
     </nav>
+
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+  function atualizaNavbarFoto(foto) {
+    const navbarImg = document.getElementById('navbar-profile-img');
+    if (navbarImg) {
+      navbarImg.src = foto && foto !== "" ? foto : '../assets/img/usuario.png';
+    }
+  }
+  function carregaPerfilAtualizaNavbar() {
+    fetch('carregar_perfil.php')
+      .then(res => res.json())
+      .then(data => {
+        const fotoPerfil = data.foto && data.foto !== "" ? data.foto : '../assets/img/usuario.png';
+        atualizaNavbarFoto(fotoPerfil);
+      });
+  }
+  document.querySelectorAll('.nav-link').forEach(function(link) {
+    if (link.textContent.includes('Configuração')) {
+      link.addEventListener('click', carregaPerfilAtualizaNavbar);
+    }
+  });
+  if (document.getElementById('settings-form')) {
+    document.getElementById('settings-form').addEventListener('submit', function(e) {
+      setTimeout(carregaPerfilAtualizaNavbar, 900);
+    });
+  }
+  carregaPerfilAtualizaNavbar();
+});
+  </script>
+
     <div class="container-fluid py-2 min-vh-100 d-flex flex-column">
       <div class="row flex-grow-1">
         <div class="col-lg-8">
@@ -300,7 +332,8 @@ function navActive($file) {
             <div class="card-header pb-0 p-3 d-flex justify-content-between align-items-center">
               <h6 class="mb-0">Histórico de Finanças</h6>
               <div class="d-flex justify-content-end mb-2">
-              <button class="btn btn-danger" id="btn-excluir-historico">
+<!-- Botão Excluir Histórico -->
+<button class="btn btn-danger" id="btn-excluir-historico" data-bs-toggle="modal" data-bs-target="#modalExcluirHistorico">
   <span class="material-symbols-rounded align-middle">delete</span>
   Excluir Histórico
 </button>
@@ -1154,7 +1187,7 @@ document.addEventListener('DOMContentLoaded', carregarHistoricoFinancas);
 <!-- Google Material Symbols (se não tiver no billing.php) -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" />
 
-<!-- Modal de Confirmação de Exclusão de Histórico -->
+<!-- Modal de Confirmação -->
 <div class="modal fade" id="modalExcluirHistorico" tabindex="-1" aria-labelledby="modalExcluirHistoricoLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg">
@@ -1172,5 +1205,25 @@ document.addEventListener('DOMContentLoaded', carregarHistoricoFinancas);
     </div>
   </div>
 </div>
+
+<script>
+document.getElementById('btnConfirmarExcluirHistorico').addEventListener('click', function () {
+  fetch('excluir_historico.php', {
+    method: 'POST'
+  })
+  .then(res => res.json())
+  .then(resp => {
+    if(resp.sucesso){
+      bootstrap.Modal.getInstance(document.getElementById('modalExcluirHistorico')).hide();
+      // Atualiza histórico na tela
+      if(typeof carregarHistoricoFinancas === "function") carregarHistoricoFinancas();
+      alert('Histórico excluído com sucesso!');
+    } else {
+      alert('Erro ao excluir histórico: ' + (resp.msg||''));
+    }
+  })
+  .catch(() => alert('Erro ao excluir histórico!'));
+});
+</script>
 </body>
 </html>

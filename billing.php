@@ -1207,22 +1207,42 @@ document.addEventListener('DOMContentLoaded', carregarHistoricoFinancas);
 </div>
 
 <script>
+// Ao carregar a página, verifica no banco se o histórico já foi excluído
+document.addEventListener('DOMContentLoaded', function () {
+  fetch('consultar_historico_excluido.php')
+    .then(res => res.json())
+    .then(data => {
+      if (data.excluido) {
+        document.getElementById('historico-financas').innerHTML = `
+          <div class="alert alert-info text-center">
+            Seu histórico de finanças foi removido e não aparecerá mais nesta conta.<br>
+            <small>Esta ação é permanente.</small>
+          </div>
+        `;
+      } else {
+        carregarHistoricoFinancas();
+      }
+    });
+});
+
+// Quando clicar em excluir, salva no banco
 document.getElementById('btnConfirmarExcluirHistorico').addEventListener('click', function () {
-  fetch('excluir_historico.php', {
-    method: 'POST'
-  })
-  .then(res => res.json())
-  .then(resp => {
-    if(resp.sucesso){
-      bootstrap.Modal.getInstance(document.getElementById('modalExcluirHistorico')).hide();
-      // Atualiza histórico na tela
-      if(typeof carregarHistoricoFinancas === "function") carregarHistoricoFinancas();
-      alert('Histórico excluído com sucesso!');
-    } else {
-      alert('Erro ao excluir histórico: ' + (resp.msg||''));
-    }
-  })
-  .catch(() => alert('Erro ao excluir histórico!'));
+  fetch('excluir_historico.php', { method: 'POST' })
+    .then(res => res.json())
+    .then(resp => {
+      if (resp.sucesso) {
+        document.getElementById('historico-financas').innerHTML = `
+          <div class="alert alert-info text-center">
+            Seu histórico de finanças foi removido. Não aparecerá mais nesta conta.<br>
+            <small>Esta ação é permanente.</small>
+          </div>
+        `;
+        bootstrap.Modal.getInstance(document.getElementById('modalExcluirHistorico')).hide();
+      } else {
+        alert('Erro ao excluir histórico: ' + (resp.msg || ''));
+      }
+    })
+    .catch(() => alert('Erro ao excluir histórico!'));
 });
 </script>
 </body>
